@@ -187,19 +187,39 @@ def analyze_ws_p_effect(n, k, num_trials=5):
     
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
     
-    ax1.plot(p_values, cc_values, marker='o', color='green', linewidth=2, markersize=6)
+    ax1.plot(p_values, cc_values, marker='o', color='green', linewidth=2, markersize=6, label='Simulation')
+    
+    cc_theoretical = [3 * (k - 2) * ((1 - p) ** 3) / (4 * (k - 1)) for p in p_values]
+    ax1.plot(p_values, cc_theoretical, marker='', color='red', linewidth=2, linestyle='--', label='Theoretical')
+    
     ax1.set_xlabel('Rewiring Probability p')
     ax1.set_ylabel('Clustering Coefficient')
     ax1.set_title(f'Clustering Coefficient vs. Rewiring Probability (n={n}, k={k})')
     ax1.grid(True, linestyle='--', alpha=0.7)
     ax1.set_xlim(0, 1)
+    ax1.legend()
     
-    ax2.plot(p_values, diameter_values, marker='s', color='blue', linewidth=2, markersize=6)
+    ax2.plot(p_values, diameter_values, marker='s', color='blue', linewidth=2, markersize=6, label='Simulation')
+    
+    diameter_theoretical = []
+    for p in p_values:
+        x = p * k * n / 2
+        if x == 0:
+            f_x = 0
+        else:
+            sqrt_term = np.sqrt(x ** 2 + 4 * x)
+            f_x = (4 / sqrt_term) * np.arctanh(x / sqrt_term)
+        l_p = (n / k) * f_x
+        diameter_theoretical.append(l_p)
+    
+    ax2.plot(p_values, diameter_theoretical, marker='', color='red', linewidth=2, linestyle='--', label='Theoretical')
+    
     ax2.set_xlabel('Rewiring Probability p')
     ax2.set_ylabel('Diameter')
     ax2.set_title(f'Diameter vs. Rewiring Probability (n={n}, k={k})')
     ax2.grid(True, linestyle='--', alpha=0.7)
     ax2.set_xlim(0, 1)
+    ax2.legend()
     
     plt.tight_layout()
     plt.savefig('ws_p_effect.png', dpi=300, bbox_inches='tight')
