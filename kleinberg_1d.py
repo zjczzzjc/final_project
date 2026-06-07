@@ -202,11 +202,65 @@ def get_distance_distribution(n, g):
                 all_distances.append(dist[j])
     return all_distances
 
+def analyze_diameter_vs_r(n=100, p_local=1, q_long=2, num_trials=5):
+    r_values = np.linspace(0, 4, 21)
+    
+    diameter_values = []
+    
+    print('=' * 70)
+    print('1D Kleinberg Model - Diameter vs. Decay Exponent r')
+    print(f'Parameters: n={n}, p_local={p_local}, q_long={q_long}, trials={num_trials}')
+    print('=' * 70)
+    print(f'{"r":<10} {"Avg Diameter":<15}')
+    print('-' * 70)
+    
+    for r in r_values:
+        diameter_sum = 0
+        
+        for _ in range(num_trials):
+            g, pos, grid_size = kleinberg_1d_graph_sample(n, p_local, q_long, r)
+            diameter = calc_diameter(n, g)
+            diameter_sum += diameter
+        
+        avg_diameter = diameter_sum / num_trials
+        diameter_values.append(avg_diameter)
+        
+        print(f'{r:<10.2f} {avg_diameter:<15}')
+    
+    print('=' * 70)
+    
+    theoretical_diameter = []
+    log_n = math.log(n)
+    
+    for r in r_values:
+        if r <= 2:
+            d = log_n
+        else:
+            exponent = (r - 2) / (r - 1)
+            d = n ** exponent
+        
+        theoretical_diameter.append(d)
+    
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(r_values, diameter_values, marker='o', color='blue', linewidth=2, markersize=6, label='Simulation')
+    ax.plot(r_values, theoretical_diameter, color='red', linewidth=2, linestyle='--', label='Theoretical')
+    ax.axvline(x=1, color='green', linestyle=':', label='Optimal r=1')
+    ax.set_xlabel('Decay Exponent r')
+    ax.set_ylabel('Diameter')
+    ax.set_title(f'1D Kleinberg Model - Diameter vs. r (n={n})')
+    ax.grid(True, linestyle='--', alpha=0.7)
+    ax.legend()
+    
+    plt.tight_layout()
+    plt.savefig('kleinberg_1d_diameter_vs_r.png', dpi=300, bbox_inches='tight')
+    print('Figure saved as: kleinberg_1d_diameter_vs_r.png')
+    plt.show()
+
 if __name__ == '__main__':
     print('1D Kleinberg Model')
     print('=' * 50)
     
-    n = 1000
+    n = 100
     p_local = 1
     q_long = 2
     r = 1.0
@@ -215,13 +269,16 @@ if __name__ == '__main__':
     
     print(f'n={n}, p_local={p_local}, q_long={q_long}, r={r}')
     
-    cc = calc_clustering_coefficient(n, g)
-    diameter = calc_diameter(n, g)
-    components = calc_component_sizes(n, g)
+    #cc = calc_clustering_coefficient(n, g)
+    #diameter = calc_diameter(n, g)
+    #components = calc_component_sizes(n, g)
     
-    print(f'Clustering Coefficient: {cc:.4f}')
-    print(f'Diameter: {diameter}')
-    print(f'Largest Component: {components[0]}')
+    #print(f'Clustering Coefficient: {cc:.4f}')
+    #print(f'Diameter: {diameter}')
+    #print(f'Largest Component: {components[0]}')
     
-    calc_degree_distribution(n, g, r, p_local, q_long)
-    plt.show()
+    #calc_degree_distribution(n, g, r, p_local, q_long)
+    #plt.show()
+    
+    print('\nDiameter vs. Decay Exponent r Analysis')
+    analyze_diameter_vs_r(n=400, p_local=1, q_long=1, num_trials=5)
